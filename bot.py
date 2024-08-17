@@ -1,6 +1,7 @@
 import telebot
 import logging
 
+
 class TelegramBot:
     """
     A class to interact with the Telegram Bot API.
