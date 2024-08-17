@@ -10,7 +10,7 @@ from bot import TelegramBot
 
 
 # Configure logging
-logging.basicConfig(filename='script.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='TelePipe.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def load_config(config_file='config.json'):
     """
