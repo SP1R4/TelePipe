@@ -1,7 +1,6 @@
 import telebot
 import logging
 
-
 class TelegramBot:
     """
     A class to interact with the Telegram Bot API.
@@ -14,7 +13,9 @@ class TelegramBot:
         Args:
             bot_token (str): The token for the Telegram bot.
         """
+        self.bot_token = bot_token
         self.bot = telebot.TeleBot(bot_token)
+        logging.info(f"Initialized TelegramBot with token '{bot_token}'")
 
     def get_chat_id(self):
         """
@@ -26,7 +27,9 @@ class TelegramBot:
         try:
             updates = self.bot.get_updates(timeout=10)
             if updates:
-                return updates[-1].message.chat.id
+                chat_id = updates[-1].message.chat.id
+                logging.info(f"Retrieved chat ID: {chat_id}")
+                return chat_id
         except Exception as e:
             logging.error(f"Error getting updates: {e}")
         return None
@@ -45,6 +48,10 @@ class TelegramBot:
         try:
             with open(file_path, 'rb') as file:
                 self.bot.send_document(chat_id, file)
-            logging.info(f"File '{file_path}' sent successfully.")
+            logging.info(f"File '{file_path}' sent successfully to chat ID {chat_id}.")
+        except FileNotFoundError:
+            logging.error(f"File '{file_path}' not found.")
+            raise
         except Exception as e:
             logging.error(f"Failed to send file '{file_path}': {e}")
+            raise
