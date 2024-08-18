@@ -6,10 +6,23 @@ import logging
 import re
 import zipfile
 
+# Configure logging
+logging.basicConfig(filename='TelePipe.log', level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+DEFAULT_CONFIG = {
+    "bots": [
+        {
+            "bot_token": "YOUR_BOT_TOKEN_HERE",
+            "chat_id": "YOUR_CHAT_ID_HERE"
+        }
+    ],
+    "default_chat_id": "YOUR_CHAT_ID_HERE"
+}
 
 def load_config(config_file='config.json'):
     """
-    Loads configuration settings from a JSON file.
+    Loads configuration settings from a JSON file or creates a default file if missing.
 
     Args:
         config_file (str): The path to the configuration file.
@@ -18,21 +31,32 @@ def load_config(config_file='config.json'):
         dict: The configuration settings as a dictionary.
 
     Raises:
-        FileNotFoundError: If the configuration file does not exist.
+        FileNotFoundError: If the configuration file does not exist and cannot be created.
         json.JSONDecodeError: If the configuration file is not a valid JSON file.
     """
-    logging.info("Loading configuration from config.json")
+    if not os.path.exists(config_file):
+        logging.warning("Configuration file not found. Creating a default config.json.")
+        create_default_config(config_file)
+    
     try:
         with open(config_file) as f:
             config = json.load(f)
         logging.info("Configuration loaded successfully")
         return config
-    except FileNotFoundError:
-        logging.error("Config file not found")
-        raise
     except json.JSONDecodeError:
         logging.error("Error parsing the config file")
         raise
+
+def create_default_config(config_file):
+    """
+    Creates a default configuration file with placeholder values.
+
+    Args:
+        config_file (str): The path to the configuration file to be created.
+    """
+    with open(config_file, 'w') as f:
+        json.dump(DEFAULT_CONFIG, f, indent=4)
+    logging.info('Default configuration file created. Please update config.json with your bot token and chat ID.')
 
 def validate_extension(extension):
     """
@@ -122,7 +146,6 @@ def wait_for_chat_id(telegram_bot):
     logging.info("Waiting for chat ID by polling the Telegram bot")
     chat_id = None
     while chat_id is None:
-        logging.info("No interaction detected. Polling again in 10 seconds...")
         print("Waiting for interaction with the bot...")
         chat_id = telegram_bot.get_chat_id()
         if chat_id is None:
@@ -142,8 +165,11 @@ def send_file_to_telegram(telegram_bot, chat_id, file_path):
         file_path (str): The path of the file to be sent.
     """
     logging.info(f"Sending file '{file_path}' to chat ID {chat_id}")
-    telegram_bot.send_file(chat_id, file_path)
-    logging.info(f"File '{file_path}' successfully sent to Telegram")
+    try:
+        telegram_bot.send_file(chat_id, file_path)
+        logging.info(f"File '{file_path}' successfully sent to Telegram")
+    except Exception as e:
+        logging.error(f"Failed to send file to Telegram: {e}")
 
 def send_file_command(telegram_bot, file_path):
     """
